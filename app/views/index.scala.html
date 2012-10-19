@@ -1,0 +1,167 @@
+@(message: String, checkedIn: Map[String, String], motd: String, vacation: String)(implicit request: RequestHeader)
+@import org.apache.commons.codec.digest._
+
+@main("Employee dashboard") {
+
+
+<div id="corner_logo">
+  <div style="font-size:x-small;color: #BBB; font-family: Arial; text-shadow: 0px 1px 0px white;">Brought to you by </div>
+  <img src="@routes.Assets.at("images/commons/logo-lunatech.png")"/>
+</div>
+
+<div id="Header">
+  <div id="Tabs">
+    <ul id="MainTabs">
+      <li><a href="/"  class="current" id="room_tab-440640" title="Daily view">Office</a></li>
+
+    </ul>
+  </div>
+</div>
+
+<div id="Wrapper">	    
+  <div id="Container" style="position:relative; top:10px; ">
+   <div class="Left">
+      <div class="col" style="padding:0px;  min-height:500px">
+       <div style="padding: 10px 30px 20px 20px;">
+         <div id="onError" style="display:none" class="alert-message error">
+          <p>
+           <strong>Oops!</strong> <span></span>
+         </p>
+       </div>
+
+
+       <h1 style="font-family: Helvetica Neue;font-weight: 800; font-size: 22pt;">Present in the office</h1>
+
+       <div class="chat" style="width: 500px;">
+        <ul id="members">
+          @checkedIn.map {
+          case (key, value) => {
+          <li id="@key" ><img style="width:80px; height: 80px;" src="http://www.gravatar.com/avatar/@(DigestUtils.md5Hex(key)).png"/><span class="title" >@key</span></li>
+        }
+      }
+    </ul>
+  </div>
+</div>
+</div>
+</div>
+</div>
+
+<script type="text/javascript" charset="utf-8">
+
+$(function() {
+
+ var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
+ var chatSocket = new WS("@routes.Application.listen().webSocketURL()")
+
+ var sendMessage = function(kind, data) {
+  chatSocket.send(JSON.stringify(
+    {kind: kind,
+      user: '',
+      message: data}
+      ))
+
+}
+
+$('#vacation').inlineEdit({
+ buttonText: 'Update',
+ save: function(e, data) {
+   sendMessage('vacation', data.value)
+   return true;
+ }
+});
+
+$('#motd').inlineEdit({
+  buttonText: 'Update',
+  save: function(e, data) {
+    sendMessage('motd', data.value)
+    return true;
+  }
+});
+
+var receiveEvent = function(event) {
+  var data = JSON.parse(event.data)
+
+                              // Handle errors
+                              if(data.error) {
+                                chatSocket.close()
+                                $("#onError span").text(data.error)
+                                $("#onError").show()
+                                return
+                              } else {
+                                $("#onError").hide()
+                              }
+
+                              var escapedName = data.user.replace(/[\.|@@]/g, "_");
+
+                              // Update the members list
+                              if (data.kind == 'join') {
+                                var name = hex_md5($.trim(data.user.toLowerCase()));
+                                if ($('#' + escapedName).length == 0) {
+                                  $("#members").append('<li id="' + escapedName + '" style="display:none; "><img style="width:80px; height: 80px;" src="http://www.gravatar.com/avatar/' + name + '.png"><span class="title" >' + data.user + '</span></li>')
+                                  $("#" + escapedName).effect("pulsate", { times:3 }, 2000);
+                                }
+                                
+                              } 
+                              
+                              if (data.kind == 'quit') {
+                                $("#" + escapedName).effect("pulsate", { times:3 }, 2000).slideUp("1s")
+                              }
+                              
+                              if (data.kind == 'vacation') {
+                                $("#vacation").text(data.message);
+                                $("#vacation").effect("pulsate", { times:3 }, 2000)
+                              }
+
+                              if (data.kind == 'motd') {
+                                $("#motd").text(data.message);
+                                $("#motd").effect("pulsate", { times:3 }, 2000)
+                              }
+                            }
+
+                            chatSocket.onmessage = receiveEvent
+
+
+                            var setTime = function () {
+                              $("#date").text(moment().format('ddd. Do MMMM, YYYY - hh:mm:ss '))
+                              setTimeout(setTime, 1000)
+                            }
+                            setTime()
+
+                          })
+
+</script>
+<div id="Sidebar" class="admin_user">
+  <div id="SidebarTop">
+
+    <div class="participants">
+      <div id="room_locking">
+       <h2>
+        <span class="room_actions">
+        </span>
+        <span id="date">Wed. 12th April, 2012</span>
+
+      </h2>
+      
+      
+      <h3>
+        <span class="room_actions">
+        </span>
+        On vacation this week
+      </h3>
+
+      <p id="vacation" style="margin-left:10px;font-family: monospace">@vacation</p>
+
+
+      <h3>
+        <span class="room_actions">
+        </span>
+        Message of the day
+      </h3>
+
+      <p id="motd" style="margin-left:10px;font-family: monospace">@motd</p>
+
+    </div>
+  </div>
+
+
+}
