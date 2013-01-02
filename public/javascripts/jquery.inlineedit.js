@@ -25,7 +25,7 @@ $.fn.inlineEdit = function( options ) {
             $.inlineEdit.getInstance( this, options ).initValue();
         })
 
-        .live( ['blur|click', 'mouseenter','mouseleave'].join(namespace+' '), function( event ) {
+        .on( ['blur', 'click', 'mouseenter','mouseleave'].join(namespace+' '), function( event ) {
 
             var widget = $.inlineEdit.getInstance( this, options ),
                 editableElement = widget.element.find( widget.options.control ),
@@ -35,6 +35,7 @@ $.fn.inlineEdit = function( options ) {
             
             if ( event.target !== editableElement[0] ) {
                 switch ( event.type ) {
+                    case 'blur':
                     case 'click':
                         widget[ mutated ? 'mutate' : 'init' ]();
                         break;
