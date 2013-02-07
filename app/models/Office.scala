@@ -22,13 +22,13 @@ object Office {
   var vacationMessage = "no one"
   
   implicit val timeout = Timeout(1 second)
-  
+
   lazy val default = {
     val roomActor = Akka.system.actorOf(Props[Office])
-     
+
     roomActor
   }
-  
+
   def join(username:String) = {
       default ! Join(username)
   }
@@ -44,11 +44,11 @@ object Office {
   def vacation(username:String, message:String) = {
         default ! Vacation(username, message)
   }
-  
+
   def listen():Promise[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
     (default ? Listen()).asPromise.map {
 
-      case Connected(enumerator) => 
+      case Connected(enumerator) =>
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] { event =>
             (event \ "kind").as[String] match {
@@ -56,12 +56,12 @@ object Office {
                 case "motd" => default ! Motd((event \ "user").as[String], (event \ "message").as[String])
                 case _ => default ! Listen()
             }
-         
+
         }
 
         (iteratee, enumerator)
-        
-      case CannotConnect(error) => 
+
+      case CannotConnect(error) =>
         // Connection error
 
         // A finished Iteratee sending EOF
@@ -69,9 +69,9 @@ object Office {
 
         // Send an error and close the socket
         val enumerator = Enumerator[JsValue](JsObject(Seq("error" -> JsString(error)))).andThen(Enumerator.enumInput(Input.EOF))
-        
+
         (iteratee, enumerator)
-         
+
     }
 
   }

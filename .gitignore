@@ -1,4 +1,6 @@
 logs
+.idea
+.idea_modules
 project/project
 project/target
 target
