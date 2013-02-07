@@ -7,10 +7,10 @@ import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.iteratee._
 
+import play.api.libs.concurrent.Execution.Implicits._
+
 import models._
 
-import akka.actor._
-import akka.util.duration._
 
 object Application extends Controller {
   
@@ -27,7 +27,7 @@ object Application extends Controller {
      Office.quit(email)
      Ok("")
   }
-  
+
   def listen() = WebSocket.async[JsValue] { request  =>
     Office.listen()
   }

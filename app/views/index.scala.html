@@ -1,7 +1,6 @@
-@(message: String, checkedIn: Map[String, String], motd: String, vacation: String)(implicit request: RequestHeader)
+@(message: String, checkedIn: scala.collection.immutable.Map[String, String], motd: String, vacation: String)(implicit request: RequestHeader)
 @import org.apache.commons.codec.digest._
-
-@main("Employee dashboard") {
+@main("Joy of Coding") {
 
 
 <div id="corner_logo">
@@ -12,7 +11,7 @@
 <div id="Header">
   <div id="Tabs">
     <ul id="MainTabs">
-      <li><a href="/"  class="current" id="room_tab-440640" title="Daily view">Office</a></li>
+      <li><a href="/"  class="current" id="room_tab-440640" title="Daily view">Maassilo Rotterdam</a></li>
 
     </ul>
   </div>
@@ -20,17 +19,18 @@
 
 <div id="Wrapper">	    
   <div id="Container" style="position:relative; top:10px; ">
-   <div class="Left">
-      <div class="col" style="padding:0px;  min-height:500px">
-       <div style="padding: 10px 30px 20px 20px;">
+   <div class="Left" >
+       <div id="background" style="min-height: 500px;background-image: url(@routes.Assets.at("images/commons/logo.png")); position: relative; top: 0;left: 0; background-position: center bottom; background-repeat: no-repeat;; opacity: 0.3;"></div>
+       <div class="col" style="top: -500px; position: relative; padding:0px; z-index: -1; min-height: 500px; " >
+         <div style="padding: 10px 30px 20px 20px;">
          <div id="onError" style="display:none" class="alert-message error">
           <p>
            <strong>Oops!</strong> <span></span>
          </p>
-       </div>
+        </div>
 
 
-       <h1 style="font-family: Helvetica Neue;font-weight: 800; font-size: 22pt;">Present in the office</h1>
+       <h1 style="font-family: Helvetica Neue;font-weight: 800; font-size: 22pt;">Present at the conference</h1>
 
        <div class="chat" style="width: 500px;">
         <ul id="members">
@@ -45,6 +45,7 @@
 </div>
 </div>
 </div>
+
 
 <script type="text/javascript" charset="utf-8">
 
@@ -61,14 +62,6 @@ $(function() {
       ))
 
 }
-
-$('#vacation').inlineEdit({
- buttonText: 'Update',
- save: function(e, data) {
-   sendMessage('vacation', data.value)
-   return true;
- }
-});
 
 $('#motd').inlineEdit({
   buttonText: 'Update',
@@ -107,11 +100,6 @@ var receiveEvent = function(event) {
                                 $("#" + escapedName).effect("pulsate", { times:3 }, 2000).slideUp("1s")
                               }
                               
-                              if (data.kind == 'vacation') {
-                                $("#vacation").text(data.message);
-                                $("#vacation").effect("pulsate", { times:3 }, 2000)
-                              }
-
                               if (data.kind == 'motd') {
                                 $("#motd").text(data.message);
                                 $("#motd").effect("pulsate", { times:3 }, 2000)
@@ -130,38 +118,63 @@ var receiveEvent = function(event) {
                           })
 
 </script>
-<div id="Sidebar" class="admin_user">
-  <div id="SidebarTop">
+    <div id="Sidebar" class="admin_user">
+        <div id="SidebarTop">
 
-    <div class="participants">
-      <div id="room_locking">
-       <h2>
-        <span class="room_actions">
-        </span>
-        <span id="date">Wed. 12th April, 2012</span>
+            <div class="participants">
+                <div id="room_locking">
+                    <h2>
+                        <span class="room_actions">
+                        </span>
+                        <span id="date">Wed. 12th April, 2012</span>
 
-      </h2>
-      
-      
-      <h3>
-        <span class="room_actions">
-        </span>
-        On vacation this week
-      </h3>
-
-      <p id="vacation" style="margin-left:10px;font-family: monospace">@vacation</p>
+                    </h2>
 
 
-      <h3>
-        <span class="room_actions">
-        </span>
-        Message of the day
-      </h3>
+                    <h3>
+                        <span class="room_actions">
+                        </span>
+                           Welcome to Joy of Coding
+                    </h3>
 
-      <p id="motd" style="margin-left:10px;font-family: monospace">@motd</p>
+                    <p id="motd" style="margin-left:10px;font-family: monospace">@motd</p>
 
+
+                    <h3>
+                        <span class="room_actions">
+                        </span>
+                            What you say about Joy Of Coding
+                    </h3>
+                    <p>
+                    <div id="twitterwall" style="max-height: 400px">
+                        <ul id="tweets"></ul>
+                    </div>
+                    </p>
+                    <script type="text/html" id="tweet_template">
+                        <li id="<%=id%>">
+                            <div class="tweet">
+                                <div class="vcard">
+                                    <a href="http://twitter.com/<%=screen_name%>" class="url"><img style="height: 48px; width: 48px;" alt="@@<%=screen_name%>" class="photo fn" height="48" src="<%=profile_image_url%>" width="48" /></a>
+                                </div>
+                                <div class="hentry">
+                                    <strong><a href="http://twitter.com/<%=screen_name%>" title="<%=name%>"><%=screen_name%></a></strong>
+                                    <span class="entry-content"><%=tweet%></span>
+                                    <span class="meta entry-meta"><a href="http://twitter.com/<%=screen_name%>/status/<%=id%>" class="entry-date" rel="bookmark"><span class="published" title="<%=created_at%>"><%=nice_date%></span></a></span>
+                                </div>
+                                <% if (embeds.length) for (var i = 0; i < embeds.length; i++) { %>
+                                <%=embeds[i]%>
+                                <% } %>
+                            </div>
+                        </li>
+                    </script>
+
+
+                    <script src="@routes.Assets.at("javascripts/config.js")"></script>
+                    <script src="@routes.Assets.at("javascripts/twitterlib.js")"></script>
+                    <script src="@routes.Assets.at("javascripts/app.js")"></script>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-
-
+</div>
 }

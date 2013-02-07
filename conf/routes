@@ -7,5 +7,6 @@ GET     /                           controllers.Application.index
 GET    /checkin/:email             controllers.Application.checkin(email:String)
 GET    /checkout/:email             controllers.Application.checkout(email:String)
 GET    /listen                      controllers.Application.listen()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

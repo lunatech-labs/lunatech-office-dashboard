@@ -1,27 +1,32 @@
 package models
 
 import akka.actor._
-import akka.util.duration._
 
 import play.api._
 import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
-import akka.util.Timeout
+import akka.actor._
+import scala.concurrent.duration._
+
 import akka.pattern.ask
 
 import play.api.Play.current
+import play.libs.F.Promise
+import akka.util.Timeout
 
-
+import play.api.libs.concurrent.Execution.Implicits._
 
 object Office {
     
   var checkedIn = Map.empty[String, String]
   var motdMessage = "none"
   var vacationMessage = "no one"
-  
+
+
   implicit val timeout = Timeout(1 second)
+
 
   lazy val default = {
     val roomActor = Akka.system.actorOf(Props[Office])
@@ -45,8 +50,8 @@ object Office {
         default ! Vacation(username, message)
   }
 
-  def listen():Promise[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
-    (default ? Listen()).asPromise.map {
+    def listen(): scala.concurrent.Future[(Iteratee[JsValue, _], Enumerator[JsValue])] = {
+    (default ? Listen()).map {
 
       case Connected(enumerator) =>
         // Create an Iteratee to consume the feed
@@ -85,10 +90,9 @@ class Office extends Actor {
   
   def receive = {
     case Listen() => {
-          // Create an Enumerator to write to this socket
-          val channel =  Enumerator.imperative[JsValue]( onStart = () => self)
-          channels = channel +: channels
-          sender ! Connected(channel)
+      val channel =  Enumerator.imperative[JsValue]()
+      channels = channel +: channels
+      sender ! Connected(channel)
     }
     
     case Join(username) => {
@@ -106,11 +110,7 @@ class Office extends Actor {
       notifyAll("motd", username, message)
     }
     
-    case Vacation(username, message) => {
-      Office.vacationMessage = message
-      notifyAll("vacation", username, message)
-     }
-    
+
   }
   
   def notifyAll(kind: String, user: String, text: String) {
